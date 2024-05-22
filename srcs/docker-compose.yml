@@ -1,0 +1,75 @@
+# version: '3.8'
+
+services:
+    nginx:
+        container_name: nginx
+        build:
+          context: ./requirements/nginx
+          dockerfile: Dockerfile
+        env_file:
+          - ./.env
+        volumes: 
+          - wordpress:/var/www/wordpress
+        networks:
+          - inception
+        depends_on:
+          - wordpress
+        ports:
+          - "443:443" 
+        restart: always
+
+    mariadb:
+        container_name: mariadb
+        build:
+          context: ./requirements/mariadb
+          dockerfile: Dockerfile
+        env_file:
+          - ./.env
+        volumes:
+         - mariadb:/var/lib/mysql 
+        networks:
+          - inception
+        ports:
+          - "3306:3306"
+        restart: always
+
+    wordpress:
+        container_name: wordpress
+        build:
+          context: ./requirements/wordpress
+          dockerfile: Dockerfile
+        env_file:
+          - ./.env
+        depends_on:
+          - mariadb
+        volumes:
+          - wordpress:/var/www/wordpress # <--  where data will be accessible within the container.
+        networks:
+          - inception
+        ports:
+          - "9000:9000"
+        restart: always
+
+
+
+volumes:
+    wordpress: #  <-- this is the name of the volume
+        name: wordpress 
+        driver: local # <-- type of volume, local indicate that docker manage the volume
+        driver_opts: # <-- options for the volume
+          device: "/Users/othmane/data/wordpress" 
+          o: bind 
+          type: none #
+    mariadb:
+        name: mariadb
+        driver: local
+        driver_opts:
+          device: /Users/othmane/data/mariadb
+          o: bind
+          type: none
+
+
+networks:
+  inception:
+    name: inception # <-- bridge network is the default network for a container
+         
